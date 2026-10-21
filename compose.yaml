@@ -1,0 +1,8 @@
+
+services:
+  portfolio:
+    build: .
+    container_name: gioithieucanhan
+    ports:
+      - "8080:80"
+    restart: unless-stopped
