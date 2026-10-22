@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #f1f5f9;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-card {
+            width: min(400px, calc(100% - 32px));
+            padding: 32px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 35px #00000012;
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            color: #0f172a;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 13px;
+            border: 0;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #message {
+            margin-bottom: 0;
+            color: #b91c1c;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <main class="login-card">
+        <h1>Admin Login</h1>
+
+        <form id="loginForm">
+            <label for="username">Tên đăng nhập</label>
+            <input
+                id="username"
+                name="username"
+                type="text"
+                autocomplete="username"
+                required
+            >
+
+            <label for="password">Mật khẩu</label>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+            >
+
+            <button id="loginButton" type="submit">
+                Đăng nhập
+            </button>
+
+            <p id="message" role="status" aria-live="polite"></p>
+        </form>
+    </main>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const button = document.getElementById('loginButton');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            message.textContent = '';
+            button.disabled = true;
+
+            const username = form.username.value.trim();
+            const password = form.password.value;
+
+            try {
+                const response = await fetch('/admin-login.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    message.textContent =
+                        result.message || 'Đăng nhập thất bại.';
+                    return;
+                }
+
+                window.location.href = '/admin/dashboard.html';
+            } catch (error) {
+                message.textContent =
+                    'Không thể kết nối máy chủ. Vui lòng thử lại.';
+            } finally {
+                button.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

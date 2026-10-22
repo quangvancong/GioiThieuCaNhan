@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Portfolio</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f1f5f9;
+            font-family: Arial, sans-serif;
+            color: #1e293b;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 6%;
+            background: #0f172a;
+            color: white;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #logoutButton {
+            background: #ef4444;
+            color: white;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #00000008;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 19px;
+        }
+
+        .card p {
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .card a {
+            color: #2563eb;
+        }
+
+        #status {
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Portfolio Admin</h1>
+        <button id="logoutButton" type="button">Đăng xuất</button>
+    </header>
+
+    <main>
+        <section class="welcome">
+            <h2>Xin chào, <span id="username">Admin</span>!</h2>
+            <p>Chào mừng bạn đến với trang quản trị Portfolio.</p>
+            <p id="status">Đang kiểm tra phiên đăng nhập...</p>
+        </section>
+
+        <section class="cards">
+            <article class="card">
+                <h2>Thông tin cá nhân</h2>
+                <p>Xem thông tin hiện đang được lưu trong hệ thống.</p>
+                <a href="/profile.php" target="_blank" rel="noopener">
+                    Xem dữ liệu cá nhân
+                </a>
+            </article>
+
+            <article class="card">
+                <h2>Dự án</h2>
+                
+<section class="admin-card" id="projects-section">
+  <h2>Quản lý dự án</h2>
+  <p>Thêm, xem, chỉnh sửa và xóa các dự án trong Portfolio.</p>
+
+  <button type="button" id="add-project-btn">
+    + Thêm dự án
+  </button>
+
+  <p id="projects-message" role="status"></p>
+
+  <form id="project-form" hidden>
+    <h3 id="project-form-title">Thêm dự án</h3>
+
+    <input type="hidden" id="project-id">
+
+    <label for="project-title">Tên dự án *</label>
+    <input id="project-title" type="text" required maxlength="255">
+
+    <label for="project-description">Mô tả</label>
+    <textarea id="project-description" rows="3"></textarea>
+
+    <label for="project-technologies">Công nghệ sử dụng</label>
+    <input id="project-technologies" type="text"
+           placeholder="HTML, CSS, PHP, MySQL">
+
+    <label for="project-url">Liên kết dự án</label>
+    <input id="project-url" type="url"
+           placeholder="https://github.com/...">
+
+    <label for="project-image">Đường dẫn hình ảnh</label>
+    <input id="project-image" type="text"
+           placeholder="images/portfolio.jpg">
+
+    <button type="submit" id="save-project-btn">Lưu dự án</button>
+    <button type="button" id="cancel-project-btn">Hủy</button>
+  </form>
+
+  <div id="projects-list">
+    <p>Đang tải danh sách dự án...</p>
+  </div>
+</section>
+
+            </article>
+
+            <article class="card">
+                <h2>Kỹ năng</h2>
+                <p>Đây sẽ là nơi quản lý các kỹ năng lập trình.</p>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        async function checkSession() {
+            try {
+                const response = await fetch('/admin-session.php', {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+
+                if (response.status === 401) {
+                    window.location.replace('/admin/login.html');
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Không kiểm tra được phiên đăng nhập.');
+                }
+
+                const result = await response.json();
+
+                document.getElementById('username').textContent =
+                    result.username;
+
+                document.getElementById('status').textContent =
+                    'Phiên đăng nhập hợp lệ.';
+            } catch (error) {
+                document.getElementById('status').textContent =
+                    'Không thể xác minh đăng nhập. Vui lòng tải lại trang.';
+            }
+        }
+
+        document.getElementById('logoutButton').addEventListener(
+            'click',
+            async () => {
+                try {
+                    const response = await fetch('/admin-logout.php', {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Đăng xuất thất bại.');
+                    }
+
+                    window.location.replace('/admin/login.html');
+                } catch (error) {
+                    document.getElementById('status').textContent =
+                        'Không thể đăng xuất. Vui lòng thử lại.';
+                }
+            }
+        );
+
+        checkSession();
+    </script>
+
+<script>
+const projectForm = document.getElementById('project-form');
+const projectsList = document.getElementById('projects-list');
+const projectsMessage = document.getElementById('projects-message');
+const addProjectBtn = document.getElementById('add-project-btn');
+const cancelProjectBtn = document.getElementById('cancel-project-btn');
+
+const projectFields = {
+  id: document.getElementById('project-id'),
+  title: document.getElementById('project-title'),
+  description: document.getElementById('project-description'),
+  technologies: document.getElementById('project-technologies'),
+  url: document.getElementById('project-url'),
+  image: document.getElementById('project-image')
+};
+
+let projects = [];
+
+function showMessage(message, isError = false) {
+  projectsMessage.textContent = message;
+  projectsMessage.style.color = isError ? '#dc2626' : '#15803d';
+}
+
+async function apiRequest(method, data) {
+  const options = {
+    method,
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' }
+  };
+
+  if (data) options.body = JSON.stringify(data);
+
+  const response = await fetch('/admin-projects.php', options);
+  const result = await response.json();
+
+  if (!response.ok || result.status !== 'ok') {
+    throw new Error(result.message || 'Có lỗi xảy ra');
+  }
+
+  return result;
+}
+
+function resetProjectForm() {
+  projectForm.reset();
+  projectFields.id.value = '';
+  document.getElementById('project-form-title').textContent = 'Thêm dự án';
+  projectForm.hidden = true;
+}
+
+function renderProjects() {
+  projectsList.replaceChildren();
+
+  if (projects.length === 0) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.textContent = 'Chưa có dự án nào.';
+    projectsList.appendChild(emptyMessage);
+    return;
+  }
+
+  projects.forEach(project => {
+    const card = document.createElement('article');
+    card.className = 'project-item';
+
+    const title = document.createElement('h3');
+    title.textContent = project.title;
+
+    const description = document.createElement('p');
+    description.textContent = project.description || 'Chưa có mô tả';
+
+    const technologies = document.createElement('p');
+    technologies.textContent = 'Công nghệ: ' + (project.technologies || 'Chưa cập nhật');
+
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.textContent = 'Sửa';
+    editButton.addEventListener('click', () => editProject(project));
+
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.textContent = 'Xóa';
+    deleteButton.addEventListener('click', () => deleteProject(project));
+
+    card.append(title, description, technologies, editButton, deleteButton);
+    projectsList.appendChild(card);
+  });
+}
+
+async function loadProjects() {
+  try {
+    const result = await apiRequest('GET');
+    projects = result.data || [];
+    renderProjects();
+  } catch (error) {
+    showMessage('Không tải được dự án: ' + error.message, true);
+    projectsList.textContent = 'Không thể tải danh sách dự án.';
+  }
+}
+
+function editProject(project) {
+  projectFields.id.value = project.id;
+  projectFields.title.value = project.title || '';
+  projectFields.description.value = project.description || '';
+  projectFields.technologies.value = project.technologies || '';
+  projectFields.url.value = project.project_url || '';
+  projectFields.image.value = project.image || '';
+
+  document.getElementById('project-form-title').textContent = 'Sửa dự án';
+  projectForm.hidden = false;
+  projectFields.title.focus();
+}
+
+addProjectBtn.addEventListener('click', () => {
+  projectForm.reset();
+  projectFields.id.value = '';
+  document.getElementById('project-form-title').textContent = 'Thêm dự án';
+  projectForm.hidden = false;
+  projectFields.title.focus();
+});
+
+cancelProjectBtn.addEventListener('click', resetProjectForm);
+
+projectForm.addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const id = projectFields.id.value;
+  const data = {
+    title: projectFields.title.value.trim(),
+    description: projectFields.description.value.trim(),
+    technologies: projectFields.technologies.value.trim(),
+    project_url: projectFields.url.value.trim(),
+    image: projectFields.image.value.trim()
+  };
+
+  if (!data.title) {
+    showMessage('Vui lòng nhập tên dự án.', true);
+    return;
+  }
+
+  try {
+    await apiRequest(id ? 'PUT' : 'POST', id ? { ...data, id: Number(id) } : data);
+    showMessage(id ? 'Cập nhật dự án thành công.' : 'Thêm dự án thành công.');
+    resetProjectForm();
+    await loadProjects();
+  } catch (error) {
+    showMessage(error.message, true);
+  }
+});
+
+async function deleteProject(project) {
+  if (!confirm(`Bạn có chắc muốn xóa dự án "${project.title}"?`)) return;
+
+  try {
+    await apiRequest('DELETE', { id: Number(project.id) });
+    showMessage('Xóa dự án thành công.');
+    await loadProjects();
+  } catch (error) {
+    showMessage(error.message, true);
+  }
+}
+
+loadProjects();
+</script>
+
+</body>
+</html>
